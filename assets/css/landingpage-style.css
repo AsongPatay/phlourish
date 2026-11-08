@@ -1,0 +1,389 @@
+body:has(.navbar) {
+  background: #f4f7f7;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(20, 195, 194, 0.12);
+}
+
+.navbar-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.phlourish-logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--teal);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  opacity: 1;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.phlourish-logo:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.phlourish-logo .logo-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0 0.05rem;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.phlourish-logo:hover .logo-icon {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+.nav-buttons ul {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  list-style: none;
+}
+
+.nav-buttons a {
+  position: relative;
+  font-weight: 700;
+  color: var(--black);
+  padding: 0.15rem 0;
+  opacity: 1;
+}
+
+.nav-buttons a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.2rem;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--teal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.nav-buttons a:hover {
+  opacity: 1;
+  color: var(--teal-dark);
+}
+
+.nav-buttons a:hover::after,
+.nav-buttons a.is-active::after {
+  transform: scaleX(1);
+}
+
+.nav-buttons a.is-active {
+  color: var(--teal);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 80% at 85% 20%, rgba(255, 255, 255, 0.28), transparent 55%),
+    radial-gradient(ellipse 50% 60% at 10% 90%, rgba(11, 85, 84, 0.22), transparent 50%),
+    linear-gradient(160deg, #0fa9a8 0%, #14c3c2 45%, #8ee8e7 100%);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10%;
+  background:
+    radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.18), transparent 42%),
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1), transparent 38%);
+  animation: hero-drift 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes hero-drift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.05); }
+}
+
+.hero-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 5rem;
+}
+
+.hero-container-image {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-container-info {
+  max-width: 560px;
+  color: #fff;
+}
+
+.hero-container-title h1 {
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.08);
+  animation: ph-rise 0.7s var(--ease-out) both;
+}
+
+.hero-container-text p {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 1.6rem;
+  opacity: 0.95;
+  animation: ph-rise 0.7s var(--ease-out) 0.12s both;
+}
+
+.hero-container-button {
+  animation: ph-rise 0.7s var(--ease-out) 0.22s both;
+}
+
+.joinnow-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--teal);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur) var(--ease-soft),
+    background var(--dur-fast) var(--ease-soft);
+}
+
+.joinnow-button:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+}
+
+.joinnow-button:active {
+  transform: translateY(0);
+}
+
+.joinnow-button--on-teal {
+  background: #fff;
+  color: var(--teal);
+}
+
+.info {
+  padding: 2.5rem 1.5rem 3rem;
+}
+
+.info-white-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: var(--shadow-soft), var(--shadow);
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  min-height: 420px;
+  overflow: hidden;
+  animation: ph-rise 0.75s var(--ease-out) both;
+}
+
+.left-character-list {
+  background: #f0f4f4;
+  padding: 1.1rem 0.7rem;
+}
+
+.left-character-list ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.left-character-list li {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #c9d6d6;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border: 3px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition:
+    transform var(--dur) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-soft),
+    box-shadow var(--dur) var(--ease-soft);
+}
+
+.left-character-list li:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(20, 195, 194, 0.25);
+}
+
+.left-character-list li.is-selected {
+  border-color: var(--teal);
+  transform: scale(1.1);
+  box-shadow: 0 0 0 3px var(--teal-mist), 0 4px 14px rgba(20, 195, 194, 0.28);
+}
+
+.right-character-information-container {
+  padding: 2.4rem 2.6rem;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 1.75rem;
+  row-gap: 0.85rem;
+  align-items: start;
+}
+
+.character-image {
+  grid-row: 1 / span 2;
+  width: 180px;
+  height: 220px;
+  border-radius: 16px;
+  background: #dfeaea;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  transition: background var(--dur) var(--ease-soft), transform var(--dur) var(--ease-out);
+}
+
+.character-name {
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #163838;
+}
+
+.character-bio {
+  color: var(--gray);
+  line-height: 1.65;
+  max-width: 42rem;
+}
+
+.character-panel-enter {
+  animation: char-swap 0.38s var(--ease-out) both;
+}
+
+@keyframes char-swap {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.call-section-container {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 120%, rgba(255, 255, 255, 0.18), transparent 55%),
+    var(--teal);
+}
+
+.call-section-information-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+}
+
+.call-information h1 {
+  color: #fff;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  margin-bottom: 1.35rem;
+  letter-spacing: -0.02em;
+  animation: ph-rise 0.65s var(--ease-out) both;
+}
+
+.call-information .joinnow-button {
+  animation: ph-rise 0.65s var(--ease-out) 0.1s both;
+}
+
+.landing-footer {
+  background: #fff;
+  padding: 1.35rem 1.5rem;
+  text-align: center;
+  color: var(--gray);
+  font-size: 0.92rem;
+  border-top: 1px solid #eef2f2;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-buttons ul {
+    flex-wrap: wrap;
+    gap: 0.9rem 1.1rem;
+  }
+
+  .info-white-container {
+    grid-template-columns: 1fr;
+  }
+
+  .left-character-list ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .right-character-information-container {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+  }
+
+  .character-image {
+    grid-row: auto;
+    width: 120px;
+    height: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::before {
+    animation: none;
+  }
+
+  .hero-container-title h1,
+  .hero-container-text p,
+  .hero-container-button,
+  .info-white-container,
+  .call-information h1,
+  .call-information .joinnow-button,
+  .character-panel-enter {
+    animation: none;
+  }
+}

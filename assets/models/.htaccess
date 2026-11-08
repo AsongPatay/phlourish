@@ -1,0 +1,14 @@
+# Serve Vosk model archives as downloadable files (not gzip-decoded by Apache).
+<IfModule mod_mime.c>
+  AddType application/gzip .gz
+  AddType application/octet-stream .tar
+</IfModule>
+
+<IfModule mod_deflate.c>
+  SetEnvIfNoCase Request_URI "\.tar\.gz$" no-gzip dont-vary
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set Cross-Origin-Resource-Policy "same-origin"
+  Header set Accept-Ranges bytes
+</IfModule>

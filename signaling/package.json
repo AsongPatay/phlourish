@@ -1,0 +1,12 @@
+{
+  "name": "webcall-signaling",
+  "version": "1.0.0",
+  "description": "Minimal free WebSocket signaling server for a WebRTC web call feature",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

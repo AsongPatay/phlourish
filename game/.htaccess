@@ -1,0 +1,3 @@
+AddType application/wasm .wasm
+AddType application/octet-stream .pck
+AddType application/javascript .js
