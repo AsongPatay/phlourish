@@ -1,6 +1,5 @@
 <?php
 require __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/mail.php';
 
 $error = '';
 $questions = pretest_questions();
@@ -44,7 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = 'That email is already registered.';
                 } elseif ($existing && empty($existing['email_verified_at'])) {
                     db()->prepare(
-                        'UPDATE users SET password_hash = ?, full_name = ?, gender = ?, birthdate = ? WHERE id = ?'
+                        'UPDATE users
+                         SET password_hash = ?, full_name = ?, gender = ?, birthdate = ?,
+                             email_verified_at = COALESCE(email_verified_at, NOW()),
+                             email_verify_hash = NULL, email_verify_expires = NULL
+                         WHERE id = ?'
                     )->execute([
                         password_hash($password, PASSWORD_DEFAULT),
                         $fullName,
@@ -52,15 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $birthdate,
                         (int) $existing['id'],
                     ]);
-                    ph_issue_email_verification((int) $existing['id'], $email, $fullName);
-                    audit_log('resend_verify', 'user', (int) $existing['id']);
-                    redirect('check-email.php');
+                    audit_log('register', 'user', (int) $existing['id']);
+                    redirect('login.php?registered=1');
                 } else {
                     $mentorId = least_loaded_mentor_id();
                     db()->beginTransaction();
                     $ins = db()->prepare(
-                        'INSERT INTO users (email, password_hash, role, full_name, gender, birthdate, mentor_id)
-                         VALUES (?, ?, \'mentee\', ?, ?, ?, ?) RETURNING id'
+                        'INSERT INTO users (
+                            email, password_hash, role, full_name, gender, birthdate, mentor_id, email_verified_at
+                         ) VALUES (?, ?, \'mentee\', ?, ?, ?, ?, NOW()) RETURNING id'
                     );
                     $ins->execute([$email, password_hash($password, PASSWORD_DEFAULT), $fullName, $gender, $birthdate, $mentorId]);
                     $userId = (int) $ins->fetchColumn();
@@ -71,9 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     )->execute([$userId, json_encode($answers), $mean]);
                     db()->commit();
 
-                    ph_issue_email_verification($userId, $email, $fullName);
                     audit_log('register', 'user', $userId);
-                    redirect('check-email.php');
+                    redirect('login.php?registered=1');
                 }
             } catch (Throwable $e) {
                 if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
@@ -98,7 +100,7 @@ require __DIR__ . '/includes/header.php';
 <main class="page page--teal">
   <form class="card-wide" method="post">
     <h1>Register with PHLOURISH</h1>
-    <p class="form-lead">Create a mentee account with your email. We will send a confirmation link, then you can log in. Registration is for ages 18–24.</p>
+    <p class="form-lead">Create a mentee account with your email and log in right away. Registration is for ages 18–24.</p>
     <?= csrf_field() ?>
     <?php if ($error): ?>
       <p class="form-footer" style="margin-top:0;margin-bottom:1rem;color:#c0392b;"><?= e($error) ?></p>

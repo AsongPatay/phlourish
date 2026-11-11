@@ -111,9 +111,6 @@ function ph_authenticate(string $email, string $password, array $roles): array
     if ($row['status'] !== 'active') {
         return ['ok' => false, 'error' => 'This account is paused. Contact PHLOURISH.'];
     }
-    if (array_key_exists('email_verified_at', $row) && empty($row['email_verified_at'])) {
-        return ['ok' => false, 'error' => 'Please confirm your email first. We sent a verification link.', 'unverified' => true];
-    }
     if ($roles && !in_array($row['role'], $roles, true)) {
         return ['ok' => false, 'error' => 'Use the login page that matches your role.'];
     }

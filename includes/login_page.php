@@ -5,9 +5,14 @@ function render_login_page(string $title, array $roles, string $heading, string 
 {
     $error = '';
     $notice = '';
-    $unverified = false;
     if (!empty($_GET['timeout'])) {
         $error = 'Your session expired. Please log in again.';
+    }
+    if (!empty($_GET['registered'])) {
+        $notice = 'Your account is ready. You can log in now.';
+    }
+    if (!empty($_GET['email_confirmation_not_required'])) {
+        $notice = 'Email confirmation is no longer required. You can log in now.';
     }
     if (!empty($_GET['verified'])) {
         $notice = 'Email confirmed. You can log in now.';
@@ -37,10 +42,6 @@ function render_login_page(string $title, array $roles, string $heading, string 
                     $result = ph_authenticate($email, $password, $roles);
                     if (!$result['ok']) {
                         $error = $result['error'];
-                        if (!empty($result['unverified'])) {
-                            $unverified = true;
-                            $_SESSION['verify_email'] = strtolower(trim($email));
-                        }
                     } elseif ($result['user']['role'] === 'super_admin' && !empty($result['user']['mfa_code_hash'])) {
                         session_regenerate_id(true);
                         $_SESSION['mfa_pending_id'] = (int) $result['user']['id'];
@@ -74,9 +75,6 @@ function render_login_page(string $title, array $roles, string $heading, string 
       <?php endif; ?>
       <?php if ($error): ?>
         <p class="form-footer" style="margin-top:0;margin-bottom:1rem;color:<?= $cardClass === 'card-admin' ? '#fff' : '#c0392b' ?>;"><?= e($error) ?></p>
-        <?php if ($unverified): ?>
-          <p class="form-footer" style="margin-top:0;margin-bottom:1rem;"><a href="check-email.php">Resend verification email</a></p>
-        <?php endif; ?>
       <?php endif; ?>
       <?php if ($mfaPending): ?>
         <p class="form-lead">Enter the Super Admin security code.</p>
