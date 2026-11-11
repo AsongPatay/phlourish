@@ -12,3 +12,5 @@ RUN a2enmod rewrite
 
 COPY . /var/www/html/
 WORKDIR /var/www/html
+
+CMD ["sh", "-c", "php bin/migrate.php && exec apache2-foreground"]
