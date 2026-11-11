@@ -34,7 +34,7 @@ require __DIR__ . '/includes/header.php';
         <iframe
           id="game-frame"
           class="game-frame"
-          src="game/index.html"
+          src="game/index.html?v=20261111"
           title="PHLOURISH RPG"
           allow="autoplay; fullscreen; gamepad"
           tabindex="0"

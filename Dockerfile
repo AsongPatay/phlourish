@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql pgsql zip
 
-RUN a2enmod rewrite
+RUN a2enmod rewrite headers
 
 COPY . /var/www/html/
 WORKDIR /var/www/html
