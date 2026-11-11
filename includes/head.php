@@ -16,10 +16,10 @@ $extraCss = $extraCss ?? [];
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=5">
+  <link rel="stylesheet" href="assets/css/style.css?v=9">
   <?php foreach ((array) $extraCss as $href): ?>
     <?php $sep = strpos($href, '?') !== false ? '&' : '?'; ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars($href . $sep . 'v=5', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($href . $sep . 'v=9', ENT_QUOTES, 'UTF-8') ?>">
   <?php endforeach; ?>
 </head>
 <body>

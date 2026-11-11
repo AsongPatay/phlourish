@@ -13,7 +13,7 @@ require __DIR__ . '/includes/head.php';
   <div class="navbar-container">
     <div class="org-logo">
       <a class="phlourish-logo" href="landing-page.php">
-        PHL<img class="logo-icon" src="assets/img/logo.svg" alt="" width="22" height="22">URISH
+        PHL<img class="logo-icon" src="assets/img/logo.svg?v=20261111" alt="" width="22" height="22">URISH
       </a>
     </div>
     <div class="nav-buttons">
@@ -80,6 +80,6 @@ require __DIR__ . '/includes/head.php';
   <p>PHLOURISH Mental Health Initiative Inc.</p>
 </footer>
 
-<script src="assets/js/landing-master-detail.js?v=5"></script>
+<script src="assets/js/landing-master-detail.js?v=9"></script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

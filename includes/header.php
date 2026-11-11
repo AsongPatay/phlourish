@@ -30,7 +30,7 @@ if ($user) {
 <header class="site-header">
   <a class="logo" href="landing-page.php" aria-label="PHLOURISH home">
     <span class="logo-wordmark">
-      PHL<img class="logo-icon" src="assets/img/logo.svg" alt="" width="22" height="22">URISH
+      PHL<img class="logo-icon" src="assets/img/logo.svg?v=20261111" alt="" width="22" height="22">URISH
     </span>
     <span class="logo-tagline">Mental Health Initiative Inc.</span>
   </a>

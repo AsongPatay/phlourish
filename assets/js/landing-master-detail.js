@@ -55,7 +55,7 @@
 
   function portraitStyle(character) {
     if (character.image) {
-      return "center top / cover no-repeat url('" + character.image + "'), " + character.color;
+      return "center top / cover no-repeat url('" + character.image + "?v=20261111'), " + character.color;
     }
     return character.color;
   }
