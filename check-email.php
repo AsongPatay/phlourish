@@ -23,16 +23,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$email]);
                     $row = $stmt->fetch();
                     if ($row && empty($row['email_verified_at'])) {
-                        ph_issue_email_verification((int) $row['id'], $email, $row['full_name']);
+                        $delivery = ph_issue_email_verification((int) $row['id'], $email, $row['full_name']);
                         $_SESSION['verify_resend_at'] = time();
+                        if (!$delivery['sent']) {
+                            $error = 'We could not send the confirmation email. Please try again later.';
+                        }
                     } else {
                         $_SESSION['verify_email'] = $email;
                         $_SESSION['verify_link'] = null;
                     }
-                    $message = 'If that email still needs confirmation, we sent a new link.';
+                    if ($error === '') {
+                        $message = 'If that email still needs confirmation, we sent a new link.';
+                    }
                 } catch (Throwable $e) {
-                    // Installation gate removed: the app now connects directly to the configured PostgreSQL database.
-                    // $error = 'Database is not ready. Open install.php first (MySQL must be running).';
+                    error_log('Verification email resend failed: ' . $e->getMessage());
+                    $error = 'We could not send the confirmation email. Please try again later.';
                 }
             }
         }
@@ -52,7 +57,7 @@ require __DIR__ . '/includes/header.php';
   <form class="card-mentor" method="post">
     <h1>Confirm your email</h1>
     <?= csrf_field() ?>
-    <p class="form-lead">We sent a confirmation link to finish sign-up. Check your inbox, then log in.</p>
+    <p class="form-lead">We sent a confirmation link to finish sign-up. Check your inbox and spam folder, then log in.</p>
     <?php if ($error): ?>
       <p class="form-footer" style="margin-top:0;margin-bottom:1rem;color:#c0392b;"><?= e($error) ?></p>
     <?php endif; ?>
@@ -64,7 +69,7 @@ require __DIR__ . '/includes/header.php';
       <input type="email" id="email" name="email" required value="<?= e($email) ?>">
     </div>
     <?php if ($verifyLink): ?>
-      <p class="form-lead verify-fallback">XAMPP often cannot send mail. Use this confirmation link for local testing: <a href="<?= e($verifyLink) ?>">Confirm email</a></p>
+      <p class="form-lead verify-fallback">Email delivery is unavailable right now. For local testing, use this confirmation link: <a href="<?= e($verifyLink) ?>">Confirm email</a></p>
     <?php endif; ?>
     <button class="btn btn--teal" type="submit">Resend email</button>
     <p class="form-footer"><a href="login.php">Back to login</a></p>

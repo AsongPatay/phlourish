@@ -19,5 +19,10 @@ return [
     'app_url' => getenv('APP_URL') ?: '',
     'mail_from' => getenv('MAIL_FROM') ?: 'noreply@phlourish.test',
     'mail_from_name' => getenv('MAIL_FROM_NAME') ?: 'PHLOURISH',
+    'mail_host' => getenv('MAIL_HOST') ?: '',
+    'mail_port' => (int) (getenv('MAIL_PORT') ?: 587),
+    'mail_username' => getenv('MAIL_USERNAME') ?: '',
+    'mail_password' => getenv('MAIL_PASSWORD') ?: '',
+    'mail_encryption' => strtolower(getenv('MAIL_ENCRYPTION') ?: 'tls'),
     'signaling_ws_url' => getenv('SIGNALING_WS_URL') ?: 'ws://localhost:8080',
 ];
