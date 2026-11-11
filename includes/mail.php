@@ -29,15 +29,17 @@ function ph_send_mail(string $to, string $subject, string $body): bool
     ]);
     $ok = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
 
-    $logDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage';
-    if (!is_dir($logDir)) {
-        @mkdir($logDir, 0775, true);
+    if (getenv('APP_ENV') !== 'production') {
+        $logDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0775, true);
+        }
+        @file_put_contents(
+            $logDir . DIRECTORY_SEPARATOR . 'mail.log',
+            date('c') . "\t" . $to . "\t" . $subject . "\n" . $body . "\n\n",
+            FILE_APPEND | LOCK_EX
+        );
     }
-    @file_put_contents(
-        $logDir . DIRECTORY_SEPARATOR . 'mail.log',
-        date('c') . "\t" . $to . "\t" . $subject . "\n" . $body . "\n\n",
-        FILE_APPEND | LOCK_EX
-    );
 
     return (bool) $ok;
 }
@@ -47,7 +49,7 @@ function ph_issue_email_verification(int $userId, string $email, string $name): 
     $token = bin2hex(random_bytes(32));
     $hash = hash('sha256', $token);
     db()->prepare(
-        'UPDATE student SET email_verify_hash = ?, email_verify_expires = NOW() + INTERVAL \"24 hours\" WHERE id = ?'
+        "UPDATE users SET email_verify_hash = ?, email_verify_expires = CURRENT_TIMESTAMP + INTERVAL '24 hours' WHERE id = ?"
     )->execute([$hash, $userId]);
 
     $url = ph_base_url() . '/verify-email.php?token=' . urlencode($token);

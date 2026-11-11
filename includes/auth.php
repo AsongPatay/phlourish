@@ -16,7 +16,7 @@ function ph_refresh_user(): void
     if (!$user) {
         return;
     }
-    $stmt = db()->prepare('SELECT id, email, role, full_name, gender, birthdate, mentor_id, status FROM student WHERE id = ? LIMIT 1');
+    $stmt = db()->prepare('SELECT id, email, role, full_name, gender, birthdate, mentor_id, status FROM users WHERE id = ? LIMIT 1');
     $stmt->execute([(int) $user['id']]);
     $row = $stmt->fetch();
     if (!$row || $row['status'] !== 'active') {
@@ -58,7 +58,7 @@ function ph_login_user(array $row): void
         'status' => $row['status'],
     ];
     $_SESSION['last_activity'] = time();
-    $stmt = db()->prepare('UPDATE student SET last_login_at = NOW() WHERE id = ?');
+    $stmt = db()->prepare('UPDATE users SET last_login_at = NOW() WHERE id = ?');
     $stmt->execute([(int) $row['id']]);
 }
 
@@ -102,7 +102,7 @@ function home_for_role(string $role): string
 
 function ph_authenticate(string $email, string $password, array $roles): array
 {
-    $stmt = db()->prepare('SELECT * FROM student WHERE email = ? LIMIT 1');
+    $stmt = db()->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
     $stmt->execute([strtolower(trim($email))]);
     $row = $stmt->fetch();
     if (!$row || !password_verify($password, $row['password_hash'])) {

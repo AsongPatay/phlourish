@@ -1,4 +1,9 @@
 <?php
+if (getenv('APP_ENV') === 'production' || getenv('RENDER') === 'true') {
+    http_response_code(404);
+    exit;
+}
+
 require __DIR__ . '/includes/auth.php';
 
 $cfg = ph_config();

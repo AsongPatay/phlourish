@@ -9,7 +9,7 @@ if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
 try {
     $hash = hash('sha256', $token);
     $stmt = db()->prepare(
-        'SELECT id FROM student
+        'SELECT id FROM users
          WHERE email_verify_hash = ? AND email_verify_expires >= NOW() AND email_verified_at IS NULL
          LIMIT 1'
     );
@@ -21,7 +21,7 @@ try {
     }
 
     db()->prepare(
-        'UPDATE student SET email_verified_at = NOW(), email_verify_hash = NULL, email_verify_expires = NULL WHERE id = ?'
+        'UPDATE users SET email_verified_at = NOW(), email_verify_hash = NULL, email_verify_expires = NULL WHERE id = ?'
     )->execute([(int) $row['id']]);
     unset($_SESSION['verify_email'], $_SESSION['verify_link']);
     audit_log('verify_email', 'user', (int) $row['id']);

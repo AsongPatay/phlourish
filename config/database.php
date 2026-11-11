@@ -9,28 +9,58 @@ function ph_config(): array
     return $config;
 }
 
-function ph_database_dsn(): string
+function ph_database_settings(): array
 {
     $c = ph_config();
-    $host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? ($c['db_host'] ?? 'dpg-dbo4rh3l550s738nnpdg-a.singapore-postgres.render.com'));
-    $port = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? ($c['db_port'] ?? '5432'));
-    $dbname = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? ($c['db_name'] ?? 'phlourish'));
-    $user = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? ($c['db_user'] ?? ''));
-    $pass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? ($c['db_pass'] ?? ''));
+    $databaseUrl = trim((string) (getenv('DATABASE_URL') ?: getenv('POSTGRES_URL') ?: ''));
 
-    $databaseUrl = getenv('DATABASE_URL') ?: getenv('POSTGRES_URL') ?: '';
     if ($databaseUrl !== '') {
-        $parsed = parse_url($databaseUrl);
-        if (is_array($parsed)) {
-            $host = (string) ($parsed['host'] ?? $host);
-            $port = (string) ($parsed['port'] ?? $port);
-            $dbname = ltrim((string) ($parsed['path'] ?? $dbname), '/');
-            $user = (string) ($parsed['user'] ?? $user);
-            $pass = (string) ($parsed['pass'] ?? $pass);
+        $parts = parse_url($databaseUrl);
+        if (
+            $parts === false
+            || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['postgres', 'postgresql'], true)
+            || empty($parts['host'])
+            || empty($parts['user'])
+            || !isset($parts['pass'])
+            || empty($parts['path'])
+        ) {
+            throw new RuntimeException('DATABASE_URL must be a PostgreSQL connection URL.');
         }
+
+        $host = (string) $parts['host'];
+        $port = (int) ($parts['port'] ?? 5432);
+        $database = rawurldecode(ltrim($parts['path'], '/'));
+        $user = rawurldecode($parts['user']);
+        $password = rawurldecode($parts['pass']);
+    } else {
+        $host = trim((string) ($c['db_host'] ?? ''));
+        $port = (int) ($c['db_port'] ?? 5432);
+        $database = trim((string) ($c['db_name'] ?? ''));
+        $user = trim((string) ($c['db_user'] ?? ''));
+        $password = (string) ($c['db_pass'] ?? '');
     }
 
-    return "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require";
+    if (
+        !preg_match('/^[A-Za-z0-9._:-]+$/', $host)
+        || $port < 1
+        || $port > 65535
+        || !preg_match('/^[A-Za-z0-9_-]+$/', $database)
+        || $user === ''
+        || $password === ''
+    ) {
+        throw new RuntimeException('Configure a valid PostgreSQL DATABASE_URL or DB_HOST, DB_PORT, DB_NAME, DB_USER, and DB_PASSWORD.');
+    }
+
+    return [
+        'dsn' => 'pgsql:host=' . $host . ';port=' . $port . ';dbname=' . $database . ';sslmode=require',
+        'user' => $user,
+        'password' => $password,
+    ];
+}
+
+function ph_database_dsn(): string
+{
+    return ph_database_settings()['dsn'];
 }
 
 function db(): PDO
@@ -44,23 +74,12 @@ function db(): PDO
         throw new RuntimeException('The PostgreSQL PDO driver (pdo_pgsql) is required for this app.');
     }
 
-    $host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? 'dpg-dbo4rh3l550s738nnpdg-a.singapore-postgres.render.com');
-    $port = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '5432');
-    $dbname = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'phlourish');
-    $user = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'phlourish_user');
-    $pass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? 'BvZxienrZs7YVaVjqNZWf8F9dpVMuU8W');
-
-    $dsn = "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require";
-
-    try {
-        $pdo = new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-        ]);
-    } catch (PDOException $e) {
-        die("Database Connection Failed: " . $e->getMessage());
-    }
+    $settings = ph_database_settings();
+    $pdo = new PDO($settings['dsn'], $settings['user'], $settings['password'], [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
 
     ph_ensure_email_columns($pdo);
     return $pdo;
@@ -72,23 +91,24 @@ function ph_ensure_email_columns(PDO $pdo): void
     if ($done) {
         return;
     }
-    try {
-        $cols = $pdo->query(
-            "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users'"
-        )->fetchAll(PDO::FETCH_COLUMN);
 
-        if (!in_array('email_verified_at', $cols, true)) {
-            $pdo->exec('ALTER TABLE student ADD COLUMN email_verified_at TIMESTAMP NULL');
-            $pdo->exec('UPDATE student SET email_verified_at = COALESCE(created_at, NOW()) WHERE email_verified_at IS NULL');
-        }
-        if (!in_array('email_verify_hash', $cols, true)) {
-            $pdo->exec('ALTER TABLE student ADD COLUMN email_verify_hash VARCHAR(64) DEFAULT NULL');
-        }
-        if (!in_array('email_verify_expires', $cols, true)) {
-            $pdo->exec('ALTER TABLE student ADD COLUMN email_verify_expires TIMESTAMP NULL');
-        }
-        $done = true;
-    } catch (Throwable $e) {
-        // Tables may not exist yet (install.php).
+    $cols = $pdo->query(
+        "SELECT column_name FROM information_schema.columns
+         WHERE table_schema = current_schema() AND table_name = 'users'"
+    )->fetchAll(PDO::FETCH_COLUMN);
+    if (!$cols) {
+        return;
     }
+
+    if (!in_array('email_verified_at', $cols, true)) {
+        $pdo->exec('ALTER TABLE users ADD COLUMN email_verified_at TIMESTAMP NULL');
+    }
+    if (!in_array('email_verify_hash', $cols, true)) {
+        $pdo->exec('ALTER TABLE users ADD COLUMN email_verify_hash VARCHAR(64) DEFAULT NULL');
+    }
+    if (!in_array('email_verify_expires', $cols, true)) {
+        $pdo->exec('ALTER TABLE users ADD COLUMN email_verify_expires TIMESTAMP NULL');
+    }
+
+    $done = true;
 }

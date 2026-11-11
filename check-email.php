@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Please wait a few seconds before requesting another email.';
             } else {
                 try {
-                    $stmt = db()->prepare('SELECT * FROM student WHERE email = ? LIMIT 1');
+                    $stmt = db()->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
                     $stmt->execute([$email]);
                     $row = $stmt->fetch();
                     if ($row && empty($row['email_verified_at'])) {

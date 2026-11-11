@@ -22,7 +22,7 @@ function render_login_page(string $title, array $roles, string $heading, string 
             $mfa = trim($_POST['mfa_code'] ?? '');
             try {
                 if (!empty($_SESSION['mfa_pending_id']) && in_array('super_admin', $roles, true)) {
-                    $stmt = db()->prepare('SELECT * FROM student WHERE id = ? AND role = \'super_admin\' LIMIT 1');
+                    $stmt = db()->prepare('SELECT * FROM users WHERE id = ? AND role = \'super_admin\' LIMIT 1');
                     $stmt->execute([(int) $_SESSION['mfa_pending_id']]);
                     $row = $stmt->fetch();
                     if (!$row || empty($row['mfa_code_hash']) || !password_verify($mfa, $row['mfa_code_hash'])) {

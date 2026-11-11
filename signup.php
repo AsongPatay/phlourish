@@ -36,14 +36,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Please answer every pre-test item.';
         } else {
             try {
-                $exists = db()->prepare('SELECT * FROM student WHERE email = ?');
+                $pdo = db();
+                $exists = db()->prepare('SELECT * FROM users WHERE email = ?');
                 $exists->execute([$email]);
                 $existing = $exists->fetch();
                 if ($existing && !empty($existing['email_verified_at'])) {
                     $error = 'That email is already registered.';
                 } elseif ($existing && empty($existing['email_verified_at'])) {
                     db()->prepare(
-                        'UPDATE student SET password_hash = ?, full_name = ?, gender = ?, birthdate = ? WHERE id = ?'
+                        'UPDATE users SET password_hash = ?, full_name = ?, gender = ?, birthdate = ? WHERE id = ?'
                     )->execute([
                         password_hash($password, PASSWORD_DEFAULT),
                         $fullName,
@@ -58,33 +59,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mentorId = least_loaded_mentor_id();
                     db()->beginTransaction();
                     $ins = db()->prepare(
-                        'INSERT INTO student (email, password_hash, role, full_name, gender, birthdate, mentor_id)
-                         VALUES (?, ?, \'mentee\', ?, ?, ?, ?)'
+                        'INSERT INTO users (email, password_hash, role, full_name, gender, birthdate, mentor_id)
+                         VALUES (?, ?, \'mentee\', ?, ?, ?, ?) RETURNING id'
                     );
                     $ins->execute([$email, password_hash($password, PASSWORD_DEFAULT), $fullName, $gender, $birthdate, $mentorId]);
-                    $studentId = (int) db()->lastInsertId();
-                    db()->prepare('INSERT INTO game_progress (student_id, mhm) VALUES (?, 50)')->execute([$studentId]);
+                    $userId = (int) $ins->fetchColumn();
+                    db()->prepare('INSERT INTO game_progress (user_id, mhm) VALUES (?, 50)')->execute([$userId]);
                     $mean = array_sum($answers) / count($answers);
                     db()->prepare(
-                        'INSERT INTO assessments (student_id, type, answers, mean_score) VALUES (?, \'pre\', ?, ?)'
-                    )->execute([$studentId, json_encode($answers), $mean]);
+                        'INSERT INTO assessments (user_id, type, answers, mean_score) VALUES (?, \'pre\', ?, ?)'
+                    )->execute([$userId, json_encode($answers), $mean]);
                     db()->commit();
 
-                    ph_issue_email_verification($studentId, $email, $fullName);
-                    audit_log('register', 'student', $studentId);
+                    ph_issue_email_verification($userId, $email, $fullName);
+                    audit_log('register', 'user', $userId);
                     redirect('check-email.php');
                 }
             } catch (Throwable $e) {
-                if (db()->inTransaction()) {
-                    db()->rollBack();
+                if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+                    $pdo->rollBack();
                 }
 
-                $dbError = $e instanceof PDOException ? $e->getMessage() : $e->getMessage();
-                error_log('SIGNUP DB ERROR: ' . $dbError);
-                $debugLog = __DIR__ . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'signup-debug.log';
-                @mkdir(dirname($debugLog), 0775, true);
-                @file_put_contents($debugLog, date('c') . ' ' . $dbError . PHP_EOL, FILE_APPEND | LOCK_EX);
-                $error = 'Database error: ' . $dbError;
+                error_log('Signup failed: ' . $e->getMessage());
+                $error = 'We could not complete registration right now. Please try again later.';
             }
         }
     }
